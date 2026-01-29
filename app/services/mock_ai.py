@@ -1,38 +1,45 @@
 import asyncio
 import random
 import logging
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 logger = logging.getLogger(__name__)
 
 class AIServiceUnavailable(Exception):
+    """Raised when the AI service is simulated to be down."""
     pass
 
 class MockAIService:
     def __init__(self):
-        self.failure_rate = 0.25 # 25% failure rate
+        self.failure_rate = 0.25 # 25% failure probability
 
-    async def _simulate_network_call(self):
-        """Simulate flaky network latency and failure."""
-        delay = random.uniform(1.0, 3.0) # 1-3 seconds latency
-        await asyncio.sleep(delay)
+    async def transcribe(self, audio_data: str) -> dict:
+        """
+        Simulates transcribing audio data.
         
+        Args:
+            audio_data: The input string (mocking audio bytes or reference).
+            
+        Returns:
+            dict: { "transcript": str, "sentiment": str }
+            
+        Raises:
+            AIServiceUnavailable: If the service simulation fails (25% chance).
+        """
+        # Simulate variable latency (1-3 seconds)
+        latency = random.uniform(1.0, 3.0)
+        logger.info(f"Mock AI processing started. Latency: {latency:.2f}s")
+        await asyncio.sleep(latency)
+
+        # Simulate random failure
         if random.random() < self.failure_rate:
-            logger.warning("Mock AI Service failed (simulating 503)")
-            raise AIServiceUnavailable("Service Unavailable")
+            logger.error("Mock AI simulation failed (random 25%)")
+            raise AIServiceUnavailable("AI Service temporarily unavailable")
 
-    @retry(
-        retry=retry_if_exception_type(AIServiceUnavailable),
-        stop=stop_after_attempt(5),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
-        reraise=True
-    )
-    async def process_call_summary(self, call_text: str) -> str:
-        """
-        Processes text with simulated flakiness and exponential backoff retry.
-        """
-        logger.info(f"AI Service: Processing {len(call_text)} chars...")
-        await self._simulate_network_call()
-        return f"AI Summary: Processed content successfully. [{call_text[:20]}...]"
+        # Return fake success result
+        return {
+            "transcript": "This is a simulated transcription of the call segment.",
+            "sentiment": random.choice(["positive", "neutral", "negative"])
+        }
 
+# Singleton instance
 ai_service = MockAIService()

@@ -5,6 +5,9 @@ from app.api import call_stream
 from app.db.session import engine
 from app.db.base import Base
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: create tables
     async with engine.begin() as conn:
