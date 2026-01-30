@@ -40,6 +40,7 @@ async def ingest_packet(
             await db.refresh(call)
         except IntegrityError:
             # Race condition: Another request created it just now
+            logger.warning(f">>> RACE CONDITION CAUGHT! handling concurrency for {call_id} <<<")
             await db.rollback()
             result = await db.execute(select(Call).where(Call.call_id == call_id))
             call = result.scalars().first()

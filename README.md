@@ -83,10 +83,26 @@ Follow these steps to run the project locally.
 
 ### Running Tests
 
-To verify the system's ability to handle race conditions and concurrency:
+We have dedicated scripts to simulate real-world chaos and concurrency issues.
 
+#### 1. Race Condition Visualization
+**Purpose:** To demonstrate how the system handles simultaneous packet arrivals. This script fires 5 requests for the *same new call* at the exact same millisecond.
+
+**Run the test:**
 ```bash
-python -m pytest tests/test_race_condition.py
+python tests/visualize_race.py
 ```
 
-This acts as an integration test, firing simultaneous requests to ensure the database handles them correctly without crashing.
+**What to expect:**
+1.  **Client Output:** You will see a list of 5 status codes: `['202', '202', '202', '202', '202']`. This proves *zero* requests failed.
+2.  **Server Logs:** In your `uvicorn` terminal, you will see a warning:
+    ```text
+    WARNING: ... >>> RACE CONDITION CAUGHT! handling concurrency for ... <<<
+    ```
+    This confirms the database successfully blocked the duplicate creation and the API recovered gracefully.
+
+#### 2. Standard Integration Tests
+Run the standard pytest suite to verify general logic:
+```bash
+pytest tests/
+```
