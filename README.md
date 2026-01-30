@@ -104,5 +104,5 @@ python tests/visualize_race.py
 #### 2. Standard Integration Tests
 Run the standard pytest suite to verify general logic:
 ```bash
-pytest tests/
+python -m pytest tests/
 ```
